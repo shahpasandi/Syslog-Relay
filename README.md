@@ -2,8 +2,6 @@
 
 A production-grade, disk-backed Syslog relay server that receives logs from network devices (Firewalls, Switches, Routers), stores them reliably on disk, and forwards them to Splunk via Universal Forwarder (UF).
 
-![Architecture](docs/architecture.png)
-
 ## 🎯 Features
 
 - **Multi-Device Support**: FortiGate, Sophos, Cisco IOS, and any standard Syslog sender.
@@ -15,10 +13,19 @@ A production-grade, disk-backed Syslog relay server that receives logs from netw
 - **Automated Cleanup**: A cleanup script removes old `.gz` and `.log.1` files to keep disk usage stable.
 
 ## 🏗️ Architecture
+┌─────────────────┐ UDP 514 ┌──────────────────┐ TCP 9997 ┌─────────────────┐
+│ Network Devices ├─────────────────►│ Rsyslog Relay ├───────────────►│ Splunk Indexer │
+│ (FortiGate, │ │ │ │ │
+│ Sophos, Cisco) │ │ /var/log/remote/ │ │ │
+└─────────────────┘ └──────────────────┘ └─────────────────┘
+│
+▼
+┌──────────────────┐
+│ Splunk UF │
+│ (Monitors Disk) │
+└──────────────────┘
 
-```
-Network Devices ──(UDP 514)──> Rsyslog Relay ──> /var/log/remote/ ──> Splunk UF ──(TCP 9997)──> Splunk Indexer
-```
+text
 
 ## 🆚 Why Not Splunk Connect for Syslog (SC4S)?
 
@@ -52,55 +59,99 @@ If your Splunk Indexer is down for maintenance, or if there's a network outage, 
 - **Disk**: 100+ GB (Depends on log volume and retention).
 - **Splunk**: Indexer with UF receiving port enabled.
 
-## 🚀 Installation
+## ⚡ Quick Start
 
-### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/syslog-relay.git
+# 1. Clone the repository
+git clone https://github.com/YOUR_USERNAME/syslog-relay.git
 cd syslog-relay
-```
 
-### 2. Run the installation script
-```bash
+# 2. Run the installation script
 sudo chmod +x scripts/install.sh
 sudo ./scripts/install.sh
-```
 
-### 3. Configure your devices
-Point your network devices to send Syslog to the relay server's IP on **UDP 514**.
+# 3. Configure Splunk Indexer IP
+sudo nano configs/splunk-uf/outputs.conf
 
-### 4. Configure Splunk UF
-Edit `configs/splunk-uf/inputs.conf` and `outputs.conf` with your Splunk Indexer IP and credentials.
+# 4. Install Splunk UF (manual step)
+# Follow: https://docs.splunk.com/Documentation/Forwarder
 
-## ⚙️ Configuration Files
+# 5. Send a test log
+logger -n 127.0.0.1 -P 514 "Test log from syslog-relay"
+📁 Directory Structure
+text
+syslog-relay/
+├── configs/                    # Configuration files
+│   ├── rsyslog/
+│   │   ├── rsyslog.conf        # Main Rsyslog config
+│   │   └── remote.conf         # Ruleset for remote logs
+│   ├── logrotate/
+│   │   ├── rsyslog-local       # Local system logs rotation
+│   │   └── rsyslog-remote      # Remote logs rotation
+│   ├── sysctl/
+│   │   └── 99-rsyslog.conf     # Kernel tuning
+│   ├── splunk-uf/
+│   │   ├── inputs.conf         # UF inputs
+│   │   ├── outputs.conf        # UF outputs (Splunk Indexer)
+│   │   ├── limits.conf         # UF throughput
+│   │   ├── server.conf         # UF parallel pipelines
+│   │   └── SplunkForwarder.service.d_override.conf  # Cgroups limits
+│   └── cron/
+│       └── syslog-relay-cron   # Cron jobs
+├── scripts/
+│   ├── install.sh              # Automated installer
+│   └── cleanup-old-logs.sh     # Old log cleanup script
+├── docs/
+│   ├── architecture.md         # Detailed architecture
+│   ├── tuning.md               # Tuning guide
+│   └── troubleshooting.md      # Troubleshooting guide
+├── LICENSE                     # Apache 2.0
+└── README.md                   # This file
+⚙️ Configuration Files
+All configuration files are located in the configs/ directory:
 
-All configuration files are located in the `configs/` directory:
+Rsyslog: configs/rsyslog/
 
-- **Rsyslog**: `configs/rsyslog/`
-- **Logrotate**: `configs/logrotate/`
-- **Sysctl**: `configs/sysctl/`
-- **Splunk UF**: `configs/splunk-uf/`
+Logrotate: configs/logrotate/
 
-## 🧹 Log Cleanup
+Sysctl: configs/sysctl/
 
-A cleanup script is provided to remove old `.gz` and `.log.1` files after 24 hours:
-```bash
+Splunk UF: configs/splunk-uf/
+
+🧹 Log Cleanup
+A cleanup script is provided to remove old .gz and .log.1 files after 24 hours:
+
+bash
 /usr/local/bin/cleanup-old-logs.sh
-```
-
 This script is automatically run daily at 3 AM via Cron.
 
-## 📚 Documentation
+🧪 Tested On
+OS: Ubuntu 24.04 LTS (Server)
 
-- [Architecture Details](docs/architecture.md)
-- [Tuning Guide](docs/tuning.md)
-- [Troubleshooting](docs/troubleshooting.md)
+Rsyslog: v8.2312.0
 
-## 🤝 Contributing
+Splunk Universal Forwarder: v10.x
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Devices: FortiGate 200F, Sophos XGS 2300, Cisco IOS (Catalyst)
 
-## 📄 License
+🔒 Security Considerations
+No TLS: This project uses UDP 514 (plaintext). For encrypted transport, consider using TCP with TLS (imtcp + gtls).
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-```
+Firewall: Ensure UDP 514 is only accessible from trusted network segments.
+
+UF Credentials: Never commit outputs.conf with real credentials. Use environment variables or a secrets manager.
+
+Indexer IP: Replace <SPLUNK_INDEXER_IP> in outputs.conf with your actual Splunk Indexer IP address.
+
+📚 Documentation
+Architecture Details
+
+Tuning Guide
+
+Troubleshooting
+
+🤝 Contributing
+Please read CONTRIBUTING.md for details on our code of conduct and the process for submitting pull requests.
+
+📄 License
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
