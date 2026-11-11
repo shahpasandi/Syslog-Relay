@@ -13,19 +13,20 @@ A production-grade, disk-backed Syslog relay server that receives logs from netw
 - **Automated Cleanup**: A cleanup script removes old `.gz` and `.log.1` files to keep disk usage stable.
 
 ## 🏗️ Architecture
-┌─────────────────┐ UDP 514 ┌──────────────────┐ TCP 9997 ┌─────────────────┐
-│ Network Devices ├─────────────────►│ Rsyslog Relay ├───────────────►│ Splunk Indexer │
-│ (FortiGate, │ │ │ │ │
-│ Sophos, Cisco) │ │ /var/log/remote/ │ │ │
-└─────────────────┘ └──────────────────┘ └─────────────────┘
-│
-▼
-┌──────────────────┐
-│ Splunk UF │
-│ (Monitors Disk) │
-└──────────────────┘
 
-text
+```text
+┌─────────────────┐     UDP 514      ┌──────────────────┐    TCP 9997    ┌─────────────────┐
+│ Network Devices ├─────────────────►│  Rsyslog Relay   ├───────────────►│ Splunk Indexer  │
+│ (FortiGate,     │                  │                  │                │                 │
+│  Sophos, Cisco) │                  │ /var/log/remote/ │                │                 │
+└─────────────────┘                  └──────────────────┘                └─────────────────┘
+                                              │
+                                              ▼
+                                     ┌──────────────────┐
+                                     │  Splunk UF       │
+                                     │  (Monitors Disk) │
+                                     └──────────────────┘
+```
 
 ## 🆚 Why Not Splunk Connect for Syslog (SC4S)?
 
@@ -78,8 +79,11 @@ sudo nano configs/splunk-uf/outputs.conf
 
 # 5. Send a test log
 logger -n 127.0.0.1 -P 514 "Test log from syslog-relay"
-📁 Directory Structure
-text
+```
+
+## 📁 Directory Structure
+
+```text
 syslog-relay/
 ├── configs/                    # Configuration files
 │   ├── rsyslog/
@@ -107,51 +111,51 @@ syslog-relay/
 │   └── troubleshooting.md      # Troubleshooting guide
 ├── LICENSE                     # Apache 2.0
 └── README.md                   # This file
-⚙️ Configuration Files
-All configuration files are located in the configs/ directory:
+```
 
-Rsyslog: configs/rsyslog/
+## ⚙️ Configuration Files
 
-Logrotate: configs/logrotate/
+All configuration files are located in the `configs/` directory:
 
-Sysctl: configs/sysctl/
+- **Rsyslog**: `configs/rsyslog/`
+- **Logrotate**: `configs/logrotate/`
+- **Sysctl**: `configs/sysctl/`
+- **Splunk UF**: `configs/splunk-uf/`
 
-Splunk UF: configs/splunk-uf/
+## 🧹 Log Cleanup
 
-🧹 Log Cleanup
-A cleanup script is provided to remove old .gz and .log.1 files after 24 hours:
+A cleanup script is provided to remove old `.gz` and `.log.1` files after 24 hours:
 
-bash
+```bash
 /usr/local/bin/cleanup-old-logs.sh
+```
+
 This script is automatically run daily at 3 AM via Cron.
 
-🧪 Tested On
-OS: Ubuntu 24.04 LTS (Server)
+## 🧪 Tested On
 
-Rsyslog: v8.2312.0
+- **OS**: Ubuntu 24.04 LTS (Server)
+- **Rsyslog**: v8.2312.0
+- **Splunk Universal Forwarder**: v10.x
+- **Devices**: FortiGate 200F, Sophos XGS 2300, Cisco IOS (Catalyst)
 
-Splunk Universal Forwarder: v10.x
+## 🔒 Security Considerations
 
-Devices: FortiGate 200F, Sophos XGS 2300, Cisco IOS (Catalyst)
+- **No TLS**: This project uses UDP 514 (plaintext). For encrypted transport, consider using TCP with TLS (`imtcp` + `gtls`).
+- **Firewall**: Ensure UDP 514 is only accessible from trusted network segments.
+- **UF Credentials**: Never commit `outputs.conf` with real credentials. Use environment variables or a secrets manager.
+- **Indexer IP**: Replace `<SPLUNK_INDEXER_IP>` in `outputs.conf` with your actual Splunk Indexer IP address.
 
-🔒 Security Considerations
-No TLS: This project uses UDP 514 (plaintext). For encrypted transport, consider using TCP with TLS (imtcp + gtls).
+## 📚 Documentation
 
-Firewall: Ensure UDP 514 is only accessible from trusted network segments.
+- [Architecture Details](docs/architecture.md)
+- [Tuning Guide](docs/tuning.md)
+- [Troubleshooting](docs/troubleshooting.md)
 
-UF Credentials: Never commit outputs.conf with real credentials. Use environment variables or a secrets manager.
+## 🤝 Contributing
 
-Indexer IP: Replace <SPLUNK_INDEXER_IP> in outputs.conf with your actual Splunk Indexer IP address.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-📚 Documentation
-Architecture Details
+## 📄 License
 
-Tuning Guide
-
-Troubleshooting
-
-🤝 Contributing
-Please read CONTRIBUTING.md for details on our code of conduct and the process for submitting pull requests.
-
-📄 License
-This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
