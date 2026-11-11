@@ -1,4 +1,3 @@
-```markdown
 # Tuning Guide
 
 This guide explains the key tuning parameters used in this project to handle high-volume log ingestion and ensure stable operation.
