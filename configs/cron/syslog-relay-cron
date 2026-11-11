@@ -1,0 +1,5 @@
+# Rotate remote logs every 5 minutes
+*/5 * * * * /usr/sbin/logrotate /etc/logrotate.d/rsyslog-remote
+
+# Cleanup old .gz and .log.1 files daily at 3 AM
+0 3 * * * /usr/local/bin/cleanup-old-logs.sh
