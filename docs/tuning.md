@@ -131,4 +131,3 @@ This prevents UF from consuming all server resources during log spikes or miscon
 
 - **`*/5 * * * *`**: Run Logrotate every 5 minutes. This ensures files are rotated as soon as they reach `maxsize`.
 - **`0 3 * * *`**: Run the cleanup script every day at 3 AM to remove old compressed files and keep disk usage stable.
-```
