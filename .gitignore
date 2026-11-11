@@ -1,0 +1,28 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+
+# Secrets and credentials
+*.secret
+.env
+secrets.yml
+credentials*
+
+# Splunk specific
+*.fishbucket
+*.db
+*.db-wal
+*.db-shm
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+
+# Python
+__pycache__/
+*.pyc
