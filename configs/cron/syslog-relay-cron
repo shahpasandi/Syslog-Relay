@@ -1,23 +1,5 @@
-# ============================================================
-# Syslog Relay - Cron Jobs
-# ============================================================
-#
-# This file defines the scheduled tasks for the Syslog Relay.
-# To install it, copy this file to /etc/cron.d/ or add its
-# contents to the root crontab.
-#
-# Example (as root):
-#   cp configs/cron/syslog-relay-cron /etc/cron.d/syslog-relay
-#   chmod 644 /etc/cron.d/syslog-relay
-#
-# ============================================================
-
-# Rotate remote logs every 5 minutes.
-# This ensures files are rotated as soon as they reach `maxsize 50M`,
-# preventing a single file from growing too large.
+# Rotate remote logs every 5 minutes
 */5 * * * * /usr/sbin/logrotate /etc/logrotate.d/rsyslog-remote
 
-# Cleanup old .gz and .log.1 files daily at 3 AM.
-# This removes compressed archives and outdated rotated files
-# older than 24 hours, keeping disk usage stable.
+# Cleanup old .gz and .log.1 files daily at 3 AM
 0 3 * * * /usr/local/bin/cleanup-old-logs.sh
