@@ -14,7 +14,6 @@ A production-grade, disk-backed Syslog relay server that receives logs from netw
 
 ## 🏗️ Architecture
 
-```text
 ┌─────────────────┐     UDP 514      ┌──────────────────┐    TCP 9997    ┌─────────────────┐
 │ Network Devices ├─────────────────►│  Rsyslog Relay   ├───────────────►│ Splunk Indexer  │
 │ (FortiGate,     │                  │                  │                │                 │
@@ -26,7 +25,6 @@ A production-grade, disk-backed Syslog relay server that receives logs from netw
                                      │  Splunk UF       │
                                      │  (Monitors Disk) │
                                      └──────────────────┘
-```
 
 ## 🆚 Why Not Splunk Connect for Syslog (SC4S)?
 
